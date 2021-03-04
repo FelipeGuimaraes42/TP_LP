@@ -10,7 +10,7 @@
     | SEMIC | DBCOL | COMMA
     | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
     | NAME of string | INTEGER of int | BOOLEAN of bool
-    | 
+    | NIL of unit
 
 %right SEMIC DBCOL
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
@@ -90,9 +90,9 @@ Type : AtomType (AtomType())
     | LBKT Types RBKT
     | 
 
-AtomType :
-    |
-    |
+AtomType : NIL (plcType(NIL))
+    | BOOLEAN (plcType(BOOLEAN))
+    | INT (plcType(INTEGER))
     | LPAR Type RPAR
 
 Types : Type COMMA Type
