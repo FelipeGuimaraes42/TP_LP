@@ -7,8 +7,8 @@
 %term VAR
     | PLUS | MINUS | MULTI | DIV | EQ | NEG | DIF
     | AND | NOT | BLT | BLE | 
-    | SEMIC | DBCOL | 
-    | LPAR | RPAR | LBKT | RBKT
+    | SEMIC | DBCOL | COMMA
+    | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
     | NAME of string | CINT
 
 %right SEMIC DBCOL
@@ -53,4 +53,19 @@ Expr : AtomExpr (AtomExpr)
     | : Expr BLE Expr (Prim2("<=", Expr1, Expr2))
     | : Expr DBCOL Expr (Prim2("::", Expr1, Expr2))
     | : Expr SEMIC Expr (Prim2(";", Expr1, Expr2))
+    | : 
+
+AtomExpr : Const (Const)
+    | : NAME (Var(NAME))
+    | : LBRC Prog RBRC
+    | : LPAR Expr RPAR
+    | : 
+    | : 
+
+AppExpr : AtomExpr AtomExpr
+    | : AppExpr AtomExpr
+
+Const : Expr COMMA Expr
+    | : 
+    | : LPAR RPAR
     | : 
