@@ -5,8 +5,8 @@
 %pos int
 
 %term VAR
-    | PLUS | MINUS | MULTI | DIV | EQ | NEG
-    | AND | DIF | BLT | BLE | 
+    | PLUS | MINUS | MULTI | DIV | EQ | NEG | DIF
+    | AND | NOT | BLT | BLE | 
     | SEMIC | DBCOL | 
     | LPAR | RPAR | LBKT | RBKT
     | NAME of string | CINT
@@ -36,7 +36,7 @@ Expr : AtomExpr (AtomExpr)
     | : AppExpr (AppExpr)
     | :
     | :
-    | : DIF Expr (Prim1("not", Expr)) (?)
+    | : NOT Expr (Prim1("not", Expr)) (?)
     | : NEG Expr (Prim1("~", Expr)) (?)
     | : 
     | :
