@@ -21,10 +21,10 @@
 %right SEMIC ARROW DBCOL
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
-%nonterm Prog of expr | Decl of expr (?) | Expr of expr | AtomExpr of expr
-    | AppExpr of expr | Const of plcType (?) |  Comps of expr | Matchexpr of expr
+%nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
+    | AppExpr of expr | Const of expr |  Comps of expr | Matchexpr of expr
     | Condexpr of expr | Args of plcType (?) | Params of plcType 
-    | TypedVar of plcVal | Type of AtomType | AtomType of plcType Type of plcType
+    | TypedVar of plcType (?) | Type of plcType | AtomType of plcType | Type of plcType
 
 %eop EOF
 
@@ -35,7 +35,7 @@
 %%
 
 Prog : Expr (Expr)
-    | Decl SEMIC Prog
+    | Decl SEMIC Prog (Decl)
 
 Decl : VAR NAME EQ Expr (Let (NAME, Expr))
     | FUN NAME Args EQ Expr (?)
