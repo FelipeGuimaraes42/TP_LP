@@ -16,12 +16,15 @@
     | HD | TL | ISE | PRINT
     | FN | END | ARROW | DBARROW
     | UNDSCR | PIPE
+    | EOF
 
-%right SEMIC DBCOL
+%right SEMIC ARROW DBCOL
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
-%nonterm Prog of expr | Expr of expr | Decl of expr (?) | AtomExpr of expr |
-Const of Expr | AppExpr of expr (?) | 
+%nonterm Prog of expr | Decl of expr (?) | Expr of expr | AtomExpr of expr
+    | AppExpr of expr | Const of plcType (?) |  Comps of expr | Matchexpr of expr
+    | Condexpr of expr | Args of plcType (?) | Params of plcType 
+    | TypedVar of plcVal | Type of AtomType | AtomType of plcType Type of plcType
 
 %eop EOF
 
@@ -71,7 +74,7 @@ AtomExpr : Const (Const)
 AppExpr : AtomExpr AtomExpr
     | AppExpr AtomExpr
 
-Const : TRUE | FALSE
+Const : TRUE | FALSE ou BOOLEAN (?)
     | <nat> (?)
     | LPAR RPAR
     | LPAR Type LBKT RBKT RPAR Type(Type []) (?) preciso dos brackets?
@@ -79,7 +82,7 @@ Const : TRUE | FALSE
 Comps : Expr COMMA Expr
     | expr COMMA Comps
 
-Matchexpr : END (?)
+Matchexpr : END ([])
     | PIPE Condexpr ARROW Expr Matchexpr (?)
 
 Condexpr : Expr (?)
