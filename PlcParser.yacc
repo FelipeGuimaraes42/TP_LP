@@ -22,10 +22,10 @@
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
-    | AppExpr of expr | Const of expr |  Comps of expr, expr | MatchExpr of expr
+    | AppExpr of expr | Const of expr |  Comps of expr * expr | MatchExpr of expr
     | CondExpr of expr | Args of plcType (?) | Params of plcType 
-    | TypedVar of plcType | Type of plcType | AtomType of plcType | Type of plcType
-    | RetType (?)
+    | TypedVar of string * plcType | Type of plcType | AtomType of plcType | Type of plcType
+    | RetType of plcType (?)
 
 %eop EOF
 
