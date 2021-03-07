@@ -22,10 +22,11 @@
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
-    | AppExpr of expr | Const of expr |  Comps of expr * expr | MatchExpr of expr
-    | CondExpr of expr | Args of plcType (?) | Params of plcType 
-    | TypedVar of string * plcType | Type of plcType | AtomType of plcType | Type of plcType
-    | RetType of plcType (?)
+    | AppExpr of expr * expr (?) | Const of expr |  Comps of expr * expr
+    | MatchExpr of expr | CondExpr of expr | Args of (string * plcType) list (?)
+    | Params of plcType (?) | TypedVar of string * plcType | Type of plcType
+    | AtomType of plcType | Types of plcType list
+    | RetType of plcType
 
 %eop EOF
 
@@ -36,11 +37,11 @@
 %%
 
 Prog : Expr (Expr)
-    | Decl SEMIC Prog ()
+    | Decl SEMIC Prog (Decl)
 
 Decl : VAR NAME EQ Expr (Let (NAME, Expr))
-    | FUN NAME Args EQ Expr ()
-    | FUN REC NAME Args COLON Type EQ Expr ()
+    | FUN NAME Args EQ Expr (Let(NAME, Anon(Args, Expr)))
+    | FUN REC NAME Args COLON Type EQ Expr (Letrec(NAME, ))
 
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
@@ -48,8 +49,8 @@ Expr : AtomExpr (AtomExpr)
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | NOT Expr (Prim1("not", Expr))
     | NEG Expr (Prim1("~", Expr))
-    | HD Expr ()
-    | TL Expr ()
+    | HD Expr (Prim1("::", Expr)) (?)
+    | TL Expr (Prim1("::", Expr)) (?)
     | ISE Expr ()
     | PRINT Expr ()
     | Expr AND Expr (Prim2("andalso", Expr1, Expr2))
@@ -70,15 +71,15 @@ AtomExpr : Const (Const)
     | LBRC Prog RBRC (Prog)
     | LPAR Expr RPAR (Expr)
     | LPAR Comps RPAR (Comps)
-    | FN Args DBARROW Expr END (?)
+    | FN Args DBARROW Expr END (Anon(Args, Expr)) (?)
 
-AppExpr : AtomExpr AtomExpr (?)
-    | AppExpr AtomExpr (?)
+AppExpr : AtomExpr AtomExpr (Call(AtomExpr, AtomExpr))
+    | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
-    | LPAR RPAR () (? preciso de algo?)
-    | LPAR Type LBKT RBKT RPAR (Type [])
+    | LPAR RPAR ()
+    | LPAR Type LBKT RBKT RPAR ((Type []))
 
 Comps : Expr COMMA Expr (Expr, Expr) (?)
     | expr COMMA Comps (Expr, Comps) (?)
@@ -89,8 +90,8 @@ MatchExpr : END ([])
 CondExpr : Expr (Expr)
     | UNDSCR (_)
 
-Args : LPAR RPAR
-    | LPAR Params RPAR Params(Params) (?) preciso dos parenteses?
+Args : LPAR RPAR ()
+    | LPAR Params RPAR (Params)
 
 Params : TypedVar(TypedVar)
     | TypedVar COMMA Params
