@@ -23,8 +23,8 @@
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr * expr (?) | Const of expr |  Comps of expr * expr
-    | MatchExpr of expr | CondExpr of expr | Args of (string * plcType) list (?)
-    | Params of plcType (?) | TypedVar of string * plcType | Type of plcType
+    | MatchExpr of expr | CondExpr of expr | Args of plcType list (?)
+    | Params of plcType list | TypedVar of string * plcType | Type of plcType
     | AtomType of plcType | Types of plcType list
     | RetType of plcType
 
@@ -49,8 +49,8 @@ Expr : AtomExpr (AtomExpr)
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | NOT Expr (Prim1("not", Expr))
     | NEG Expr (Prim1("~", Expr))
-    | HD Expr (Prim1("::", Expr)) (?)
-    | TL Expr (Prim1("::", Expr)) (?)
+    | HD Expr (Prim1("hd", Expr)) (?)
+    | TL Expr (Prim1("tl", Expr)) (?)
     | ISE Expr ()
     | PRINT Expr ()
     | Expr AND Expr (Prim2("andalso", Expr1, Expr2))
@@ -96,7 +96,7 @@ Args : LPAR RPAR (())
 Params : TypedVar (TypedVar)
     | TypedVar COMMA Params (TypedVar, Params)
 
-TypedVar : Type NAME (Type(Var(NAME))) (?)
+TypedVar : Type NAME (Type, (Var(NAME))) (?)
 
 Type : AtomType (AtomType)
     | LPAR Types RPAR ((Types))
