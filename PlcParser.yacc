@@ -68,9 +68,9 @@ Expr : AtomExpr (AtomExpr)
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
-    | LBRC Prog RBRC (Prog)
-    | LPAR Expr RPAR (Expr)
-    | LPAR Comps RPAR (Comps)
+    | LBRC Prog RBRC ({Prog})
+    | LPAR Expr RPAR ((Expr))
+    | LPAR Comps RPAR ((Comps))
     | FN Args DBARROW Expr END (Anon(Args, Expr)) (?)
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr, AtomExpr))
@@ -78,7 +78,7 @@ AppExpr : AtomExpr AtomExpr (Call(AtomExpr, AtomExpr))
 
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
-    | LPAR RPAR ()
+    | LPAR RPAR (())
     | LPAR Type LBKT RBKT RPAR ((Type []))
 
 Comps : Expr COMMA Expr (Expr, Expr) (?)
@@ -90,23 +90,23 @@ MatchExpr : END ([])
 CondExpr : Expr (Expr)
     | UNDSCR (_)
 
-Args : LPAR RPAR ()
+Args : LPAR RPAR (())
     | LPAR Params RPAR (Params)
 
-Params : TypedVar(TypedVar)
-    | TypedVar COMMA Params
+Params : TypedVar (TypedVar)
+    | TypedVar COMMA Params (TypedVar, Params)
 
 TypedVar : Type NAME (Type(Var(NAME))) (?)
 
 Type : AtomType (AtomType)
-    | LPAR Types RPAR ()
-    | LBKT Types RBKT()
-    | Type ARROW Type ()
+    | LPAR Types RPAR ((Types))
+    | LBKT Types RBKT ([Types])
+    | Type ARROW Type (Type, Type)
 
 AtomType : NIL (plcType(NIL)) ou () (?)
     | BOOLEAN (plcType(BOOLEAN))
     | INT (plcType(INTEGER))
-    | LPAR Type RPAR (Type) (? mais parenteses?)
+    | LPAR Type RPAR ((Type))
 
-Types : Type COMMA Type (Type, Type) (?)
-    | Type COMMA Types (Type, Types) (?)
+Types : Type COMMA Type (Type, Type)
+    | Type COMMA Types (Type, Types)
