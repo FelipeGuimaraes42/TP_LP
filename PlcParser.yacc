@@ -24,8 +24,8 @@
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr * expr (?) | Const of expr |  Comps of expr * expr
     | MatchExpr of expr | CondExpr of expr | Args of plcType list (?)
-    | Params of plcType list | TypedVar of string * plcType | Type of plcType
-    | AtomType of plcType | Types of plcType list
+    | Params of (plcType * string) list | TypedVar of string * plcType
+    | Type of plcType | AtomType of plcType | Types of plcType list
     | RetType of plcType
 
 %eop EOF
@@ -40,7 +40,7 @@ Prog : Expr (Expr)
     | Decl SEMIC Prog (Decl)
 
 Decl : VAR NAME EQ Expr (Let (NAME, Expr))
-    | FUN NAME Args EQ Expr (Let(NAME, Anon(Args, Expr)))
+    | FUN NAME Args EQ Expr (Let(NAME, Anon(Params, RetType, Expr), Call(NAME, )))
     | FUN REC NAME Args COLON Type EQ Expr (Letrec(NAME, ))
 
 Expr : AtomExpr (AtomExpr)
@@ -51,8 +51,8 @@ Expr : AtomExpr (AtomExpr)
     | NEG Expr (Prim1("~", Expr))
     | HD Expr (Prim1("hd", Expr)) (?)
     | TL Expr (Prim1("tl", Expr)) (?)
-    | ISE Expr ()
-    | PRINT Expr ()
+    | ISE Expr (Prim1("ise", Expr)) (?)
+    | PRINT Expr (Prim1("print", Expr)) (?)
     | Expr AND Expr (Prim2("andalso", Expr1, Expr2))
     | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
     | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
@@ -71,9 +71,9 @@ AtomExpr : Const (Const)
     | LBRC Prog RBRC ({Prog})
     | LPAR Expr RPAR ((Expr))
     | LPAR Comps RPAR ((Comps))
-    | FN Args DBARROW Expr END (Anon(Args, Expr)) (?)
+    | FN Args DBARROW Expr END (Anon(Type, Args, Expr)) (?)
 
-AppExpr : AtomExpr AtomExpr (Call(AtomExpr, AtomExpr))
+AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
 Const : BOOLEAN (conB(BOOLEAN))
@@ -81,7 +81,7 @@ Const : BOOLEAN (conB(BOOLEAN))
     | LPAR RPAR (())
     | LPAR Type LBKT RBKT RPAR ((Type []))
 
-Comps : Expr COMMA Expr (Expr, Expr) (?)
+Comps : Expr COMMA Expr (Expr1, Expr2) (?)
     | expr COMMA Comps (Expr, Comps) (?)
 
 MatchExpr : END ([])
@@ -101,12 +101,12 @@ TypedVar : Type NAME (Type, (Var(NAME))) (?)
 Type : AtomType (AtomType)
     | LPAR Types RPAR ((Types))
     | LBKT Types RBKT ([Types])
-    | Type ARROW Type (Type, Type)
+    | Type ARROW Type (FunType(Type1, Type2))
 
 AtomType : NIL (plcType(NIL)) ou () (?)
     | BOOLEAN (plcType(BOOLEAN))
     | INT (plcType(INTEGER))
     | LPAR Type RPAR ((Type))
 
-Types : Type COMMA Type (Type, Type)
+Types : Type COMMA Type (Type1, Type2)
     | Type COMMA Types (Type, Types)
