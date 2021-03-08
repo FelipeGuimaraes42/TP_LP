@@ -22,9 +22,9 @@
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
-    | AppExpr of expr * expr (?) | Const of expr |  Comps of expr * expr
-    | MatchExpr of expr | CondExpr of expr | Args of plcType list (?)
-    | Params of (plcType * string) list | TypedVar of string * plcType
+    | AppExpr of expr | Const of expr |  Comps of expr * expr
+    | MatchExpr of expr | CondExpr of expr | Args of plcType list
+    | Params of (plcType * string) list ou plcType list (?) | TypedVar of (plcType * expr)
     | Type of plcType | AtomType of plcType | Types of plcType list
     | RetType of plcType
 
@@ -49,10 +49,10 @@ Expr : AtomExpr (AtomExpr)
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | NOT Expr (Prim1("not", Expr))
     | NEG Expr (Prim1("~", Expr))
-    | HD Expr (Prim1("hd", Expr)) (?)
-    | TL Expr (Prim1("tl", Expr)) (?)
-    | ISE Expr (Prim1("ise", Expr)) (?)
-    | PRINT Expr (Prim1("print", Expr)) (?)
+    | HD Expr (Prim1("hd", Expr))
+    | TL Expr (Prim1("tl", Expr))
+    | ISE Expr (Prim1("ise", Expr))
+    | PRINT Expr (Prim1("print", Expr))
     | Expr AND Expr (Prim2("andalso", Expr1, Expr2))
     | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
     | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
@@ -68,21 +68,21 @@ Expr : AtomExpr (AtomExpr)
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
-    | LBRC Prog RBRC ({Prog})
-    | LPAR Expr RPAR ((Expr))
-    | LPAR Comps RPAR ((Comps))
-    | FN Args DBARROW Expr END (Anon(Type, Args, Expr)) (?)
+    | LBRC Prog RBRC (Prog)
+    | LPAR Expr RPAR (Expr)
+    | LPAR Comps RPAR (Comps)
+    | FN Args DBARROW Expr END (Anon(Type, Args, Expr))
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
-    | LPAR RPAR (())
-    | LPAR Type LBKT RBKT RPAR ((Type []))
+    | LPAR RPAR (ListT [])
+    | LPAR Type LBKT RBKT RPAR (Type [])
 
-Comps : Expr COMMA Expr (Expr1, Expr2) (?)
-    | expr COMMA Comps (Expr, Comps) (?)
+Comps : Expr COMMA Expr (Expr1, Expr2)
+    | expr COMMA Comps (Expr, Comps)
 
 MatchExpr : END ([])
     | PIPE CondExpr ARROW Expr MatchExpr ((CondExpr, Expr)::MatchExpr))
@@ -90,23 +90,25 @@ MatchExpr : END ([])
 CondExpr : Expr (Expr)
     | UNDSCR (_)
 
-Args : LPAR RPAR (())
+Args : LPAR RPAR (ListT []) (?)
     | LPAR Params RPAR (Params)
 
 Params : TypedVar (TypedVar)
     | TypedVar COMMA Params (TypedVar, Params)
 
-TypedVar : Type NAME (Type, (Var(NAME))) (?)
+TypedVar : Type NAME (Type, NAME) (?)
 
 Type : AtomType (AtomType)
-    | LPAR Types RPAR ((Types))
-    | LBKT Types RBKT ([Types])
-    | Type ARROW Type (FunType(Type1, Type2))
+    | LPAR Types RPAR (ListT(Type))
+    | LBKT Types RBKT (ESeq(Type))
+    | Type ARROW Type (FunT(Type1, Type2))
 
-AtomType : NIL (plcType(NIL)) ou () (?)
+AtomType : NIL (plcType(NIL))
     | BOOLEAN (plcType(BOOLEAN))
     | INT (plcType(INTEGER))
     | LPAR Type RPAR ((Type))
 
 Types : Type COMMA Type (Type1, Type2)
     | Type COMMA Types (Type, Types)
+
+RetType : COLLON Type (Type)
