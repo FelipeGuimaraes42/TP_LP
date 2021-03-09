@@ -37,10 +37,10 @@
 %%
 
 Prog : Expr (Expr)
-    | Decl SEMIC Prog (Decl)
+    | Decl (Decl)
 
-Decl : VAR NAME EQ Expr (Let (NAME, Expr))
-    | FUN NAME Args EQ Expr (Let(NAME, Anon(Params, RetType, Expr), Call(NAME, )))
+Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
+    | FUN NAME Args EQ Expr (Let(NAME, Anon(Params, RetType, Expr), Prog))
     | FUN REC NAME Args COLON Type EQ Expr (Letrec(NAME, ))
 
 Expr : AtomExpr (AtomExpr)
@@ -79,7 +79,7 @@ AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
     | LPAR RPAR (ListT [])
-    | LPAR Type LBKT RBKT RPAR (Type [])
+    | LPAR Type LBKT RBKT RPAR (SeqT [])
 
 Comps : Expr COMMA Expr (Expr1, Expr2)
     | expr COMMA Comps (Expr, Comps)
@@ -87,16 +87,16 @@ Comps : Expr COMMA Expr (Expr1, Expr2)
 MatchExpr : END ([])
     | PIPE CondExpr ARROW Expr MatchExpr ((CondExpr, Expr)::MatchExpr))
 
-CondExpr : Expr (Expr)
-    | UNDSCR (_)
+CondExpr : Expr (Some(Expr))
+    | UNDSCR (None)
 
-Args : LPAR RPAR (ListT []) (?)
+Args : LPAR RPAR (ListT [])
     | LPAR Params RPAR (Params)
 
 Params : TypedVar (TypedVar)
     | TypedVar COMMA Params (TypedVar, Params)
 
-TypedVar : Type NAME (Type, NAME) (?)
+TypedVar : Type NAME (Type, Var(NAME)) (?)
 
 Type : AtomType (AtomType)
     | LPAR Types RPAR (ListT(Type))
