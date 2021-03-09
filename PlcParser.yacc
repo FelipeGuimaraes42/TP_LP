@@ -71,7 +71,7 @@ AtomExpr : Const (Const)
     | LBRC Prog RBRC (Prog)
     | LPAR Expr RPAR (Expr)
     | LPAR Comps RPAR (Comps)
-    | FN Args DBARROW Expr END (Anon(Type, Args, Expr))
+    | FN Args DBARROW Expr END (Anon(Type, Args, Expr)) (?)
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
