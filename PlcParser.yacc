@@ -6,7 +6,7 @@
 
 %term VAR
     | PLUS | MINUS | MULTI | DIV | EQ | NEG | DIF
-    | TRUE | FALSE | AND | NOT | BLT | BLE
+    | AND | NOT | BLT | BLE
     | SEMIC | COLON | DBCOL | COMMA
     | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
     | NAME of string | INTEGER of int | BOOLEAN of bool
@@ -40,8 +40,8 @@ Prog : Expr (Expr)
     | Decl (Decl)
 
 Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
-    | FUN NAME Args EQ Expr (LetNAME, makeAnon(Params, Expr), Prog) (?)
-    | FUN REC NAME Args RetType EQ Expr (makeFun(NAME, Args, RetType, Expr, Prog)) (?)
+    | FUN NAME Args EQ Expr (LetNAME, makeAnon(Params, Expr), Prog)
+    | FUN REC NAME Args RetType EQ Expr (makeFun(NAME, Args, RetType, Expr, Prog))
 
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
@@ -71,7 +71,7 @@ AtomExpr : Const (Const)
     | LBRC Prog RBRC (Prog)
     | LPAR Expr RPAR (Expr)
     | LPAR Comps RPAR (Comps)
-    | FN Args DBARROW Expr END (Anon(Type, Args, Expr)) (?)
+    | FN Args DBARROW Expr END (Anon(Type, Args, Expr))
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
@@ -81,20 +81,20 @@ Const : BOOLEAN (conB(BOOLEAN))
     | LPAR RPAR (ListT [])
     | LPAR Type LBKT RBKT RPAR (SeqT [])
 
-Comps : Expr COMMA Expr (Expr1, Expr2)
-    | expr COMMA Comps (Expr, Comps)
+Comps : Expr COMMA Expr (Expr1::Expr2::[])
+    | Expr COMMA Comps (Expr::Comps)
 
 MatchExpr : END ([])
     | PIPE CondExpr ARROW Expr MatchExpr ((CondExpr, Expr)::MatchExpr))
 
-CondExpr : Expr (Some(Expr))
-    | UNDSCR (None)
+CondExpr : Expr (SOME(Expr))
+    | UNDSCR (NONE)
 
 Args : LPAR RPAR (ListT [])
     | LPAR Params RPAR (Params)
 
 Params : TypedVar (TypedVar)
-    | TypedVar COMMA Params (TypedVar, Params)
+    | TypedVar COMMA Params (TypedVar::Params)
 
 TypedVar : Type NAME (Type, Var(NAME))
 
@@ -106,9 +106,9 @@ Type : AtomType (AtomType)
 AtomType : NIL (ListT(NIL))
     | BOOLEAN (plcType(BOOLEAN))
     | INT (plcType(INTEGER))
-    | LPAR Type RPAR ((Type))
+    | LPAR Type RPAR (Type)
 
-Types : Type COMMA Type (Types)
-    | Type COMMA Types (Types)
+Types : Type COMMA Type (Type1::Type2::[])
+    | Type COMMA Types (Type::Types)
 
 RetType : COLON Type (Type)
