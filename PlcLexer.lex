@@ -45,6 +45,12 @@ fun getLineAsString() =
 (* Define what to do when the end of the file is reached. *)
 fun eof () = Tokens.EOF(0,0)
 
+(*Converts a string into an int*)
+fun strToInt s = 
+    case Int.fromString s of 
+        SOME i => i
+        | NONE => raise Fail("Could not convert string '" ^ s ^ "' to integer")
+
 (* Initialize the lexer. *)
 fun init() = ()
 %%
@@ -58,7 +64,7 @@ identifier= [a-zA-Z_0-9]*;
 
 \n => (lineNumber := !lineNumber + 1; lex());
 {whitespace}+ => (lex());
-{digit}+ => ();
+{digit}+ => (INTEGER(strToInt(yytext), yypos, yypos));
 {identifier} => (keyword(yytext, yypos, yypos));
 "+" => (PLUS(yypos, yypos));
 "-" => (MINUS(yypos, yypos));
