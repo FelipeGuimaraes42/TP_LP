@@ -23,8 +23,8 @@
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr | Const of expr |  Comps of expr * expr
-    | MatchExpr of expr | CondExpr of expr | Args of plcType list
-    | Params of (plcType * string) list ou plcType list (?) | TypedVar of (plcType * expr)
+    | MatchExpr of expr | CondExpr of expr | Args of (plcType * string) list
+    | Params of (plcType * string) list | TypedVar of (plcType * string)
     | Type of plcType | AtomType of plcType | Types of plcType list
     | RetType of plcType
 
@@ -40,8 +40,8 @@ Prog : Expr (Expr)
     | Decl (Decl)
 
 Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
-    | FUN NAME Args EQ Expr (Let(NAME, Anon(Params, RetType, Expr), Prog))
-    | FUN REC NAME Args COLON Type EQ Expr (Letrec(NAME, ))
+    | FUN NAME Args EQ Expr (LetNAME, makeAnon(Params, Expr), Prog) (?)
+    | FUN REC NAME Args RetType EQ Expr (makeFun(NAME, Args, RetType, Expr, Prog)) (?)
 
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
@@ -96,19 +96,19 @@ Args : LPAR RPAR (ListT [])
 Params : TypedVar (TypedVar)
     | TypedVar COMMA Params (TypedVar, Params)
 
-TypedVar : Type NAME (Type, Var(NAME)) (?)
+TypedVar : Type NAME (Type, Var(NAME))
 
 Type : AtomType (AtomType)
     | LPAR Types RPAR (ListT(Type))
-    | LBKT Types RBKT (ESeq(Type))
+    | LBKT Types RBKT (SeqT(Type))
     | Type ARROW Type (FunT(Type1, Type2))
 
-AtomType : NIL (plcType(NIL))
+AtomType : NIL (ListT(NIL))
     | BOOLEAN (plcType(BOOLEAN))
     | INT (plcType(INTEGER))
     | LPAR Type RPAR ((Type))
 
-Types : Type COMMA Type (Type1, Type2)
-    | Type COMMA Types (Type, Types)
+Types : Type COMMA Type (Types)
+    | Type COMMA Types (Types)
 
-RetType : COLLON Type (Type)
+RetType : COLON Type (Type)
