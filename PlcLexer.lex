@@ -10,7 +10,7 @@ type lexresult = (slvalue, pos)token
 
 fun keyword (s, lpos, rpos) =
     case s of 
-        "Bool" => BOOLEAN(lpos, rpos)
+          "Bool" => BOOLEAN(lpos, rpos)
         | "else" => ELSE(lpos, rpos)
         | "false" => BOOLEAN(lpos, rpos)
         | "fn" => FN(lpos, rpos)
@@ -54,11 +54,12 @@ fun strToInt s =
 (* Initialize the lexer. *)
 fun init() = ()
 %%
+
 %header (functor PlcLexerFun(structure Tokens: PlcParser_TOKENS));
 alpha= [A-Za-z];
 digit= [0-9];
 whitespace= [\ \t];
-identifier= [a-zA-Z_0-9]*;
+identifier= [a-zA-Z_][a-zA-Z_0-9]*;
 
 %%
 

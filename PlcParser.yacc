@@ -85,7 +85,7 @@ Comps : Expr COMMA Expr (Expr1::Expr2::[])
     | Expr COMMA Comps (Expr::Comps)
 
 MatchExpr : END ([])
-    | PIPE CondExpr ARROW Expr MatchExpr ((CondExpr, Expr)::MatchExpr))
+    | PIPE CondExpr ARROW Expr MatchExpr (Match((CondExpr, Expr)::MatchExpr))
 
 CondExpr : Expr (SOME(Expr))
     | UNDSCR (NONE)
@@ -105,7 +105,7 @@ Type : AtomType (AtomType)
 
 AtomType : NIL (ListT(NIL))
     | BOOLEAN (plcType(BOOLEAN))
-    | INT (plcType(INTEGER))
+    | INTEGER (plcType(INTEGER))
     | LPAR Type RPAR (Type)
 
 Types : Type COMMA Type (Type1::Type2::[])
