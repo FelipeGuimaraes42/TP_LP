@@ -85,7 +85,6 @@ identifier= [a-zA-Z_0-9]*;
 ":" => (COLON(yypos, yypos));
 "::" => (DBCOL(yypos, yypos));
 "," => (COMMA(yypos, yypos));
-"~" => (NEG(yypos, yypos));
 "!" => (NOT(yypos, yypos));
 "->" => (ARROW(yypos, yypos));
 "=>" => (DBARROW(yypos, yypos));

@@ -5,7 +5,7 @@
 %pos int
 
 %term VAR
-    | PLUS | MINUS | MULTI | DIV | EQ | NEG | DIF
+    | PLUS | MINUS | MULTI | DIV | EQ | DIF
     | AND | NOT | BLT | BLE
     | SEMIC | COLON | DBCOL | COMMA
     | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
@@ -48,7 +48,7 @@ Expr : AtomExpr (AtomExpr)
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | NOT Expr (Prim1("not", Expr))
-    | NEG Expr (Prim1("~", Expr))
+    | MINUS Expr (Prim1("-", Expr))
     | HD Expr (Prim1("hd", Expr))
     | TL Expr (Prim1("tl", Expr))
     | ISE Expr (Prim1("ise", Expr))
