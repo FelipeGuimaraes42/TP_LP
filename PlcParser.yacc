@@ -10,8 +10,7 @@
     | SEMIC | COLON | DBCOL | COMMA
     | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
     | NAME of string | INTEGER of int | BOOLEAN of bool
-    | NIL of unit
-    | FUN | REC
+    | NIL | FUN | REC
     | IF | THEN | ELSE | MATCH | WITH
     | HD | TL | ISE | PRINT
     | FN | END | ARROW | DBARROW
@@ -96,14 +95,14 @@ Args : LPAR RPAR (ListT [])
 Params : TypedVar (TypedVar)
     | TypedVar COMMA Params (TypedVar::Params)
 
-TypedVar : Type NAME (Type, Var(NAME))
+TypedVar : Type NAME (Type, NAME)
 
 Type : AtomType (AtomType)
     | LPAR Types RPAR (ListT(Type))
     | LBKT Types RBKT (SeqT(Type))
     | Type ARROW Type (FunT(Type1, Type2))
 
-AtomType : NIL (ListT(NIL))
+AtomType : NIL (ListT[])
     | BOOLEAN (plcType(BOOLEAN))
     | INTEGER (plcType(INTEGER))
     | LPAR Type RPAR (Type)
