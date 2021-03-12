@@ -78,7 +78,7 @@ AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
     | LPAR RPAR (ListT [])
-    | LPAR Type LBKT RBKT RPAR (Type)
+    | LPAR Type LBKT RBKT RPAR (SeqT [])
 
 Comps : Expr COMMA Expr (Expr1::Expr2::[])
     | Expr COMMA Comps (Expr::Comps)
