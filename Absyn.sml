@@ -29,7 +29,7 @@ datatype plcVal =
   | IntV of int
   | ListV of plcVal list
   | SeqV of plcVal list
-  | Clos of string * string * expr * plcVal;
+  | Clos of string * string * expr * plcVal env;
 
 (* Convert a list into a string *)
 fun list2string (conv, l) =

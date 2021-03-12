@@ -21,8 +21,8 @@
 %left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
-    | AppExpr of expr | Const of expr |  Comps of expr * expr
-    | MatchExpr of expr | CondExpr of expr | Args of (plcType * string) list
+    | AppExpr of expr | Const of expr |  Comps of expr list
+    | MatchExpr of expr | CondExpr of expr option | Args of (plcType * string) list
     | Params of (plcType * string) list | TypedVar of (plcType * string)
     | Type of plcType | AtomType of plcType | Types of plcType list
     | RetType of plcType
@@ -45,7 +45,7 @@ Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
-    | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
+    | MATCH Expr WITH MatchExpr (MatchExpr)
     | NOT Expr (Prim1("not", Expr))
     | MINUS Expr (Prim1("-", Expr))
     | HD Expr (Prim1("hd", Expr))
@@ -78,7 +78,7 @@ AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
     | LPAR RPAR (ListT [])
-    | LPAR Type LBKT RBKT RPAR (SeqT [])
+    | LPAR Type LBKT RBKT RPAR (Type)
 
 Comps : Expr COMMA Expr (Expr1::Expr2::[])
     | Expr COMMA Comps (Expr::Comps)
@@ -89,10 +89,10 @@ MatchExpr : END ([])
 CondExpr : Expr (SOME(Expr))
     | UNDSCR (NONE)
 
-Args : LPAR RPAR (ListT [])
+Args : LPAR RPAR ([])
     | LPAR Params RPAR (Params)
 
-Params : TypedVar (TypedVar)
+Params : TypedVar (TypedVar::[])
     | TypedVar COMMA Params (TypedVar::Params)
 
 TypedVar : Type NAME (Type, NAME)
