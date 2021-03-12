@@ -22,7 +22,7 @@
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr | Const of expr |  Comps of expr list
-    | MatchExpr of expr | CondExpr of expr option | Args of (plcType * string) list
+    | MatchExpr of (expr option) list | CondExpr of expr option | Args of (plcType * string) list
     | Params of (plcType * string) list | TypedVar of (plcType * string)
     | Type of plcType | AtomType of plcType | Types of plcType list
     | RetType of plcType
@@ -39,7 +39,7 @@ Prog : Expr (Expr)
     | Decl (Decl)
 
 Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
-    | FUN NAME Args EQ Expr (LetNAME, makeAnon(Params, Expr), Prog)
+    | FUN NAME Args EQ Expr (Let(NAME, makeAnon(Params, Expr), Prog))
     | FUN REC NAME Args RetType EQ Expr (makeFun(NAME, Args, RetType, Expr, Prog))
 
 Expr : AtomExpr (AtomExpr)
@@ -69,22 +69,22 @@ AtomExpr : Const (Const)
     | NAME (Var(NAME))
     | LBRC Prog RBRC (Prog)
     | LPAR Expr RPAR (Expr)
-    | LPAR Comps RPAR (Comps)
-    | FN Args DBARROW Expr END (Anon(Type, Args, Expr))
+    | LPAR Comps RPAR (List(Comps))
+    | FN Args DBARROW Expr END (makeAnon(Args, Expr))
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
 Const : BOOLEAN (conB(BOOLEAN))
     | INTEGER (conI(INTEGER))
-    | LPAR RPAR (ListT [])
-    | LPAR Type LBKT RBKT RPAR (SeqT [])
+    | LPAR RPAR (List([]))
+    | LPAR Type LBKT RBKT RPAR (ESeq(Type))
 
 Comps : Expr COMMA Expr (Expr1::Expr2::[])
     | Expr COMMA Comps (Expr::Comps)
 
 MatchExpr : END ([])
-    | PIPE CondExpr ARROW Expr MatchExpr (Match((CondExpr, Expr)::MatchExpr))
+    | PIPE CondExpr ARROW Expr MatchExpr (Match((Expr, CondExpr)::MatchExpr))
 
 CondExpr : Expr (SOME(Expr))
     | UNDSCR (NONE)
