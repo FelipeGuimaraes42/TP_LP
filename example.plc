@@ -4,8 +4,4 @@ fun rec f(Int n):Int =
   else
     n + f(n-1);
 
-(* glory and wealth
-   power of Rome
-   built on the shoulders of millions of slaves :( *)
-
 f(5)

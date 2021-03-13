@@ -10,15 +10,24 @@
     | SEMIC | COLON | DBCOL | COMMA
     | LPAR | RPAR | LBKT | RBKT | LBRC | RBRC
     | NAME of string | INTEGER of int | BOOLEAN of bool
-    | NIL | FUN | REC
+    | NIL | FUN | REC | BOOL | INT
     | IF | THEN | ELSE | MATCH | WITH
     | HD | TL | ISE | PRINT
     | FN | END | ARROW | DBARROW
     | UNDSCR | PIPE
     | EOF
 
-%right SEMIC ARROW DBCOL
-%left AND EQ DIF BLT BLE PLUS MINUS MULTI DIV LBKT
+%right SEMIC ARROW
+%nonassoc IF
+%left ELSE
+%left AND 
+%left EQ DIF
+%left BLT BLE
+%right DBCOL
+%left PLUS MINUS
+%left MULTI DIV
+%nonassoc NOT HD TL ISE PRINT NAME
+%left LBKT
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr | Const of expr |  Comps of expr list
@@ -46,13 +55,13 @@ Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
-    | NOT Expr (Prim1("not", Expr))
+    | NOT Expr (Prim1("!", Expr))
     | MINUS Expr (Prim1("-", Expr))
     | HD Expr (Prim1("hd", Expr))
     | TL Expr (Prim1("tl", Expr))
     | ISE Expr (Prim1("ise", Expr))
     | PRINT Expr (Prim1("print", Expr))
-    | Expr AND Expr (Prim2("andalso", Expr1, Expr2))
+    | Expr AND Expr (Prim2("&&", Expr1, Expr2))
     | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
     | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
     | Expr MULTI Expr (Prim2("*", Expr1, Expr2))
@@ -103,8 +112,8 @@ Type : AtomType (AtomType)
     | Type ARROW Type (FunT(Type1, Type2))
 
 AtomType : NIL (ListT[])
-    | BOOLEAN (BoolT)
-    | INTEGER (IntT)
+    | BOOL (BoolT)
+    | INT (IntT)
     | LPAR Type RPAR (Type)
 
 Types : Type COMMA Type (Type1::Type2::[])
