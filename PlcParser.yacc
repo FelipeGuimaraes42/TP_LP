@@ -22,10 +22,10 @@
 
 %nonterm Prog of expr | Decl of expr | Expr of expr | AtomExpr of expr
     | AppExpr of expr | Const of expr |  Comps of expr list
-    | MatchExpr of (expr option) list | CondExpr of expr option | Args of (plcType * string) list
-    | Params of (plcType * string) list | TypedVar of (plcType * string)
-    | Type of plcType | AtomType of plcType | Types of plcType list
-    | RetType of plcType
+    | MatchExpr of (expr option * expr) list | CondExpr of expr option
+    | Args of (plcType * string) list | Params of (plcType * string) list
+    | TypedVar of (plcType * string) | Type of plcType | AtomType of plcType
+    | Types of plcType list | RetType of plcType
 
 %eop EOF
 
@@ -39,13 +39,13 @@ Prog : Expr (Expr)
     | Decl (Decl)
 
 Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
-    | FUN NAME Args EQ Expr (Let(NAME, makeAnon(Params, Expr), Prog))
-    | FUN REC NAME Args RetType EQ Expr (makeFun(NAME, Args, RetType, Expr, Prog))
+    | FUN NAME Args EQ Expr SEMIC Prog (Let(NAME, makeAnon(Args, Expr), Prog))
+    | FUN REC NAME Args RetType EQ Expr SEMIC Prog (makeFun(NAME, Args, RetType, Expr, Prog))
 
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
-    | MATCH Expr WITH MatchExpr (MatchExpr)
+    | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | NOT Expr (Prim1("not", Expr))
     | MINUS Expr (Prim1("-", Expr))
     | HD Expr (Prim1("hd", Expr))
@@ -63,7 +63,7 @@ Expr : AtomExpr (AtomExpr)
     | Expr BLE Expr (Prim2("<=", Expr1, Expr2))
     | Expr DBCOL Expr (Prim2("::", Expr1, Expr2))
     | Expr SEMIC Expr (Prim2(";", Expr1, Expr2))
-    | Expr LBKT INTEGER RBKT (conI(INTEGER))
+    | Expr LBKT INTEGER RBKT (ConI(INTEGER))
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
@@ -75,8 +75,8 @@ AtomExpr : Const (Const)
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
-Const : BOOLEAN (conB(BOOLEAN))
-    | INTEGER (conI(INTEGER))
+Const : BOOLEAN (ConB(BOOLEAN))
+    | INTEGER (ConI(INTEGER))
     | LPAR RPAR (List([]))
     | LPAR Type LBKT RBKT RPAR (ESeq(Type))
 
@@ -84,7 +84,7 @@ Comps : Expr COMMA Expr (Expr1::Expr2::[])
     | Expr COMMA Comps (Expr::Comps)
 
 MatchExpr : END ([])
-    | PIPE CondExpr ARROW Expr MatchExpr (Match((Expr, CondExpr)::MatchExpr))
+    | PIPE CondExpr ARROW Expr MatchExpr ((CondExpr, Expr)::MatchExpr)
 
 CondExpr : Expr (SOME(Expr))
     | UNDSCR (NONE)
@@ -98,13 +98,13 @@ Params : TypedVar (TypedVar::[])
 TypedVar : Type NAME (Type, NAME)
 
 Type : AtomType (AtomType)
-    | LPAR Types RPAR (ListT(Type))
-    | LBKT Types RBKT (SeqT(Type))
+    | LPAR Types RPAR (ListT(Types))
+    | LBKT Type RBKT (SeqT(Type))
     | Type ARROW Type (FunT(Type1, Type2))
 
 AtomType : NIL (ListT[])
-    | BOOLEAN (plcType(BOOLEAN))
-    | INTEGER (plcType(INTEGER))
+    | BOOLEAN (BoolT)
+    | INTEGER (IntT)
     | LPAR Type RPAR (Type)
 
 Types : Type COMMA Type (Type1::Type2::[])
