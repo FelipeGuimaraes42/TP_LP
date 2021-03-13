@@ -10,14 +10,11 @@ type lexresult = (slvalue, pos)token
 
 fun keyword (s, lpos, rpos) =
     case s of 
-          "Bool" => BOOLEAN(s, lpos, rpos)
-        | "else" => ELSE(lpos, rpos)
-        | "false" => BOOLEAN(s, lpos, rpos)
+          "else" => ELSE(lpos, rpos)
         | "fn" => FN(lpos, rpos)
         | "fun" => FUN(lpos, rpos)
         | "hd" => HD(lpos, rpos)
         | "if" => IF(lpos, rpos)
-        | "Int" => INTEGER(s, lpos, rpos)
         | "ise" => ISE(lpos, rpos)
         | "match" => MATCH(lpos, rpos)
         | "Nil" => NIL(lpos, rpos)
@@ -25,7 +22,6 @@ fun keyword (s, lpos, rpos) =
         | "rec" => REC(lpos, rpos)
         | "then" => THEN(lpos, rpos)
         | "tl" => TL(lpos, rpos)
-        | "true" => BOOLEAN(s, lpos, rpos)
         | "var"   => VAR(lpos, rpos)
         | "with" => WITH(lpos, rpos)
         | _ => NAME(s, lpos, rpos)
