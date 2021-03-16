@@ -1,5 +1,7 @@
 (* Plc Parser Aux *)
 
+(* === IMPLEMENTED - Needs Testing === *)
+
 (* Creat the body of a function expression. *)
 fun makeFunAux (n:int, xs:(plcType * string) list, e:expr): expr = 
 	case xs of
@@ -37,4 +39,6 @@ fun makeAnon (xs:(plcType * string) list, e:expr):expr =
 					Anon(t,"$list",e')
 				end
 			end;
-      
+
+
+				

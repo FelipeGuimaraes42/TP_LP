@@ -1,3 +1,13 @@
+(* === COMPLETED === *)
+
+(* 
+  Define funções :
+  
+  object.fromString (" ") ; // Faz parsing através de uma string
+  
+  object.fromFile (textfile) ; // Parsing através de arquivo de texto
+*)
+
 structure PlcFrontEnd = struct
 
   (* Create a structure for the PlcParser, by loading the lexer and parser definitions. *)
