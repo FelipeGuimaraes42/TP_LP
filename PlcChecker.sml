@@ -28,4 +28,19 @@ exception NotFunc
 exception ListOutOfRange
 exception OpNonList
 
-(* fun teval (e:expr) = if ... then ... else ... ; *)
+fun teval (e:expr) = 
+    if ... then raise EmptySeq 
+    else if ... then raise UnknownType
+    else if ... then raise NotEqTypes
+    else if ... then raise WrongRetType
+    else if ... then raise DiffBrTypes
+    else if ... then raise IfCondNotBool
+    else if ... then raise NoMatchResults
+    else if ... then raise MatchResTypeDiff
+    else if ... then raise MatchCondTypesDiff
+    else if ... then raise CallTypeMisM
+    else if ... then raise NotFunc
+    else if ... then raise ListOutOfRange
+    else if ... then raise OpNonList
+    else
+        (* Implementação da função *)

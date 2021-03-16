@@ -7,7 +7,7 @@
 
     eval : expr -> plcValue env -> plcValue
 
-    // Dada uma epxressão E bem tipada e um ambiente de valores para as variáveis livres
+    // Dada uma expressão E bem tipada e um ambiente de valores para as variáveis livres
     // de E (podendo não haver nenhum ambiente), retorna o valor de E nesse ambiente.
     //
     // . Erros de interpretação devem gerar exceções, conforme definido em PlcInterp.sml
@@ -20,3 +20,12 @@ exception HDEmptySeq
 exception TLEmptySeq
 exception ValueNotFoundInMatch
 exception NotAFunc
+
+fun eval (e:expr) =
+    if ... then raise Impossible
+    else if ... then raise HDEmptySeq
+    else if ... then raise TLEmptySeq
+    else if ... then raise ValueNotFoundInMatch
+    else if ... then raise NotAFunc
+    else
+        (* Implementação da função *)         
