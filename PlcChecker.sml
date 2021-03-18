@@ -28,14 +28,14 @@ exception NotFunc
 exception ListOutOfRange
 exception OpNonList
 
-fun isTypeEq BoolT = true
-  | isTypeEq IntT = true
-  | isTypeEq (SeqT (exp)) = isTypeEq exp
-  | isTypeEq (ListT []) = true
-  | isTypeEq (ListT (hd :: [])) = isTypeEq hd
-  | isTypeEq (ListT (hd :: tl)) =
-      if isTypeEq hd then isTypeEq (ListT tl) else false
-  | isTypeEq _ = false;
+fun isPlcType BoolT = true
+  | isPlcType IntT = true
+  | isPlcType (SeqT (exp)) = isPlcType exp
+  | isPlcType (ListT []) = true
+  | isPlcType (ListT (hd :: [])) = isPlcType hd
+  | isPlcType (ListT (hd :: tl)) =
+      if isPlcType hd then isPlcType (ListT tl) else false
+  | isPlcType _ = false;
 
 fun isTypeSq (SeqT t:plcType) = true
   | isTypeSq _ = false;
@@ -104,24 +104,109 @@ fun teval (e:expr) (p:plcType env) : plcType =
         if teval e p = BoolT then BoolT else raise UnknownType
     | Prim1("-", e) => (*15: type(-e, ρ) = Int se type(e, ρ) = Int*)
         if teval e p = IntT then IntT else raise UnknownType
-    | Prim1("hd", e) => (*type(hd(e), ρ) = t se type(e, ρ) = [t]*)
-        (*Dunno*)
-    | Prim1("tl", e) => (* type(tl(e), ρ) = [t] se type(e, ρ) = [t]*)
+    | Prim1("hd", e) => (*16: type(hd(e), ρ) = t se type(e, ρ) = [t]*)
+        (*Dunno Aux?*)
+    | Prim1("tl", e) => (*17: type(tl(e), ρ) = [t] se type(e, ρ) = [t]*)
         let
             val t= teval e p
         in
             if isTypeSq t then t else raise UnknownType
         end
-    | Prim1("ise", e) => (*type(ise(e), ρ) = Bool se type(e, ρ) = [t] para algum tipo t*)
+    | Prim1("ise", e) => (*18: type(ise(e), ρ) = Bool se type(e, ρ) = [t] para algum tipo t*)
         let
             val t= teval e p
         in
             if isTypeSq t then BoolT else raise UnknownType
         end
-    | Prim1("print", e) => (*type(print(e), ρ) = Nil se type(e, ρ) = t para algum tipo t*)
+    | Prim1("print", e) => (*19: type(print(e), ρ) = Nil se type(e, ρ) = t para algum tipo t*)
         let
             val t= teval e p
         in
             ListT []
         end
-    |
+    | Prim2("&&", e0, e1) => (*20: type(e1, ρ) = type(e2, ρ) = Bool*)
+        let 
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = BoolT andalso t1 = BoolT then BoolT else raise UnknownType
+        end
+    | Prim2("::", e0, e1) => (*21: type(e1, ρ) = t e type(e2, ρ) = [t]*)
+    (*Aux again?*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            (?)
+        end
+    | Prim2("+", e0, e1) => (*22a: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1= IntT then IntT else raise UnknownType
+        end
+    | Prim2("-", e0, e1) => (*22b: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1= IntT then IntT else raise UnknownType
+        end
+    | Prim2("*", e0, e1) => (*22c: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1= IntT then IntT else raise UnknownType
+        end
+    | Prim2("/", e0, e1) => (*22d: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1= IntT then IntT else raise UnknownType
+        end
+    | Prim2("<", e0, e1) => (*23a: op ∈ {<, <=} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1 = IntT then BoolT else raise UnknownType
+        end
+    | Prim2("<=", e0, e1) => (*23b: op ∈ {<, <=} e type(e1, ρ) = type(e2, ρ) = Int*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = IntT andalso t1 = IntT then BoolT else raise UnknownType
+        end
+    | Prim2("=", e0, e1) => (*24a: op ∈ {=, !=} e type(e1, ρ) = type(e2, ρ) = t para algum tipo de igualdade t*)
+        let 
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 = t1 then BoolT
+            else if t0 != t1 then raise NotEqTypes
+            else raise UnknownType
+        end
+    | Prim2("!=", e0, e1) => (*24b: op ∈ {=, !=} e type(e1, ρ) = type(e2, ρ) = t para algum tipo de igualdade t*)
+        let 
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            if t0 != t1 then BoolT
+            else if t0 = t1 then raise NotEqTypes
+            else raise UnknownType
+        end
+    | Prim2() => (*25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) para algum n > 1 e tipos t1, . . . , tn, e
+                  i ∈ {1, . . . , n}*)
+        (*Dunno*)
+    | Prim2(";", e0, e1) => (*26: type(e1, ρ) = t1 para algum tipo t e type(e2, ρ) = t2*)
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+        in
+            (?)FAZER
+        end
+    | _ => raise UnknownType
