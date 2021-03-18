@@ -34,11 +34,11 @@ fun isTypeEq BoolT = true
   | isTypeEq (ListT []) = true
   | isTypeEq (ListT (hd :: [])) = isTypeEq hd
   | isTypeEq (ListT (hd :: tl)) =
-      if isTypeEq then isTypeEq (ListT tl) else false
+      if isTypeEq hd then isTypeEq (ListT tl) else false
   | isTypeEq _ = false;
 
 fun isTypeSq (SeqT t:plcType) = true
-  | isTypeSq _ false;
+  | isTypeSq _ = false;
 
 fun isFunc (FunT (s,t)) = t
   | isFunc _ raise NotFunc;
@@ -91,11 +91,37 @@ fun teval (e:expr) (p:plcType env) : plcType =
       in
         if teval e2 p = FunT (t1,t2) then t2 else raise CallTypeMisM
       end
-    | If (e,e1,e2) => (* 12 : type(if e then e1 else e2, ρ) = t se type(e, ρ) = Bool e type(e1, ρ) = type(e2, ρ) = t *)
+    | If (e0,e1,e2) => (* 12 : type(if e then e1 else e2, ρ) = t se type(e, ρ) = Bool e type(e1, ρ) = type(e2, ρ) = t *)
       let
-        val t0 = teval e  p
+        val t0 = teval e0 p
         val t1 = teval e1 p
         val t2 = teval e2 p
       in
         if t0 <> BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
       end
+    | (*Dunno*)
+     Prim1("!", e) => (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
+        if teval e p = BoolT then BoolT else raise UnknownType
+    | Prim1("-", e) => (*15: type(-e, ρ) = Int se type(e, ρ) = Int*)
+        if teval e p = IntT then IntT else raise UnknownType
+    | Prim1("hd", e) => (*type(hd(e), ρ) = t se type(e, ρ) = [t]*)
+        (*Dunno*)
+    | Prim1("tl", e) => (* type(tl(e), ρ) = [t] se type(e, ρ) = [t]*)
+        let
+            val t= teval e p
+        in
+            if isTypeSq t then t else raise UnknownType
+        end
+    | Prim1("ise", e) => (*type(ise(e), ρ) = Bool se type(e, ρ) = [t] para algum tipo t*)
+        let
+            val t= teval e p
+        in
+            if isTypeSq t then BoolT else raise UnknownType
+        end
+    | Prim1("print", e) => (*type(print(e), ρ) = Nil se type(e, ρ) = t para algum tipo t*)
+        let
+            val t= teval e p
+        in
+            ListT []
+        end
+    |
