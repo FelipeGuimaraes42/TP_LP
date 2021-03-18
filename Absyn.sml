@@ -25,7 +25,6 @@ datatype expr =
   | Item of int * expr
   | Anon of plcType * string * expr;
 
-
 datatype plcVal =
    BoolV of bool
   | IntV of int

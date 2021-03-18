@@ -21,11 +21,12 @@ exception TLEmptySeq
 exception ValueNotFoundInMatch
 exception NotAFunc
 
-fun eval (e:expr) =
-    if ... then raise Impossible
-    else if ... then raise HDEmptySeq
-    else if ... then raise TLEmptySeq
-    else if ... then raise ValueNotFoundInMatch
-    else if ... then raise NotAFunc
-    else
-        (* Implementação da função *)         
+(*
+  fun evalConI (ConI i) = i; // Avalia uma expressão que representa um inteiro em PLC e retorna esse inteiro
+*)
+
+fun eval (p:plcType env) : plcValue =
+  case e of
+    (ConI i) = i
+  | (ConB b) = b
+  | ...

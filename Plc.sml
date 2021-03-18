@@ -13,42 +13,36 @@
     do verificador de tipos e do interpretador.
 *)
 
-(*
-    PROBLEMA : Como run_teval e run_eval tratam a exceção imprimindo uma string, isso faz
-               com, por exemplo, a função teval tenha que retornar uma string. Porém, como :
-               
-               teval : expr -> plcType env -> plcType
+fun run (e:expr) =
+    let
+        val tipo = teval e
+        val valor = eval e
+    in
+        handle 
+            (* Exceções de teval (tipagem incorreta) *)
+              EmptySeq => "Do Stuff"
+            | UnknownType => " Problem Descrition ... "
+            | NotEqTypes => " Problem Descrition ... "
+            | WrongRetType => " Problem Descrition ... "
+            | DiffBrTypes => " Problem Descrition ... "
+            | IfCondNotBool => " Problem Descrition ... "
+            | NoMatchResults => " Problem Descrition ... "
+            | MatchResTypeDiff => " Problem Descrition ... "
+            | MatchCondTypesDiff => " Problem Descrition ... "
+            | CallTypeMisM => " Problem Descrition ... "
+            | NotFunc => " Problem Descrition ... "
+            | ListOutOfRange => " Problem Descrition ... "
+            | OpNonList => " Problem Descrition ... "
+            (* Exceções de eval (erros de interpretação) *)
+            | Impossible => " Problem Descrition ... "
+            | HDEmptySeq => " Problem Descrition ... "
+            | TLEmptySeq => " Problem Descrition ... "
+            | ValueNotFoundInMatch => " Problem Descrition ... "
+            | NotAFunc => " Problem Descrition ..."
 
-               Essa forma de tratar os erros causará um tycon_mismatch
-*)
+        (* 
+            Receber o valor fornecido por 'eval e' e o tipo fornecido por 'teval e'
+            Transformá-los numa string, juntar ambos noutra string e ser feliz =)
+        *)
 
-fun run_teval (e:expr) =
-    teval e
-    handle
-        EmptySeq => " Problem Descrition ... "
-        | UnknownType => " Problem Descrition ... "
-        | NotEqTypes => " Problem Descrition ... "
-        | WrongRetType => " Problem Descrition ... "
-        | DiffBrTypes => " Problem Descrition ... "
-        | IfCondNotBool => " Problem Descrition ... "
-        | NoMatchResults => " Problem Descrition ... "
-        | MatchResTypeDiff => " Problem Descrition ... "
-        | MatchCondTypesDiff => " Problem Descrition ... "
-        | CallTypeMisM => " Problem Descrition ... "
-        | NotFunc => " Problem Descrition ... "
-        | ListOutOfRange => " Problem Descrition ... "
-        | OpNonList => " Problem Descrition ... "
-    ;
-
-fun run_eval (e:expr) =
-    eval e
-    handle
-        Impossible => " Problem Descrition ... "
-        | HDEmptySeq => " Problem Descrition ... "
-        | TLEmptySeq => " Problem Descrition ... "
-        | ValueNotFoundInMatch => " Problem Descrition ... "
-        | NotAFunc => " Problem Descrition ... "
-    ;
-
-    
-
+    end;
