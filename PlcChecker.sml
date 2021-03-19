@@ -99,8 +99,21 @@ fun teval (e:expr) (p:plcType env) : plcType =
         in
             if t0 != BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
         end
-    | (*Dunno*)
-     Prim1("!", e) => (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
+    | Match(e, l) => (*13: type(match e with | e1 -> r1 | ...| en -> rn, ρ) = t se
+                          (a) type(e, ρ) = type(ei , ρ), para cada ei diferente de `__', e
+                          (b) type(r1, ρ) = . . . = type(rn, ρ) = t*)
+        let
+            val options = map(fn(x, y) => ((teval (getOptions(x, (List[]))) p), (teval y p))) l
+            fun verifyOptions [] p = raise NoMatchResults
+                | verifyOptions((ex, r)::[]) p = 
+                    if ex = (List []) then r else if ex = teval e p then r else raise MatchCondTypesDiff
+                | verifyOptions((ex, r)::(exi, ri)::tl) p =
+                    if ex != teval e p then raise MatchCondTypesDiff
+                    else ex r = ri then verifyOptions((exi, ri)::t) p else raise MatchResTypeDiff
+        in
+            verifyOptions options p
+        end
+    | Prim1("!", e) => (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
         if teval e p = BoolT then BoolT else raise UnknownType
     | Prim1("-", e) => (*15: type(-e, ρ) = Int se type(e, ρ) = Int*)
         if teval e p = IntT then IntT else raise UnknownType
