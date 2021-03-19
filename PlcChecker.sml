@@ -85,20 +85,20 @@ fun teval (e:expr) (p:plcType env) : plcType =
           FunT (s,t)
         end
     | Call (e2,e1) => (* 11 : type(e2(e1), ρ) = t2 se type(e2, ρ) = t1 -> t2 e type(e1, ρ) = t1 para algum tipo t1 *)
-      let
-        val t1 = teval e1 p
-        val t2 = isFunc (teval e2 p)
-      in
-        if teval e2 p = FunT (t1,t2) then t2 else raise CallTypeMisM
-      end
+        let
+            val t1 = teval e1 p
+            val t2 = isFunc (teval e2 p)
+        in
+            if teval e2 p = FunT (t1,t2) then t2 else raise CallTypeMisM
+        end
     | If (e0,e1,e2) => (* 12 : type(if e then e1 else e2, ρ) = t se type(e, ρ) = Bool e type(e1, ρ) = type(e2, ρ) = t *)
-      let
-        val t0 = teval e0 p
-        val t1 = teval e1 p
-        val t2 = teval e2 p
-      in
-        if t0 <> BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
-      end
+        let
+            val t0 = teval e0 p
+            val t1 = teval e1 p
+            val t2 = teval e2 p
+        in
+            if t0 != BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
+        end
     | (*Dunno*)
      Prim1("!", e) => (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
         if teval e p = BoolT then BoolT else raise UnknownType
@@ -199,14 +199,17 @@ fun teval (e:expr) (p:plcType env) : plcType =
             else if t0 = t1 then raise NotEqTypes
             else raise UnknownType
         end
-    | Prim2() => (*25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) para algum n > 1 e tipos t1, . . . , tn, e
-                  i ∈ {1, . . . , n}*)
-        (*Dunno*)
+    (*25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) para algum n > 1 e tipos t1, . . . ,
+          tn, e i ∈ {1, . . . , n}*)
+    | Item(i, List[]) => raise ListOutOfRange
+    | Item(0, List(hd::tl)) => teval hd p
+    | Item(i, List(hd::tl)) => teval (i-1, (List tl)) p
+    | Item(_, _) => raise OpNonList
     | Prim2(";", e0, e1) => (*26: type(e1, ρ) = t1 para algum tipo t e type(e2, ρ) = t2*)
         let
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            (?)FAZER
+            t1
         end
     | _ => raise UnknownType
