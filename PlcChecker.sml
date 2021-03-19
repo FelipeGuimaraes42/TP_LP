@@ -37,8 +37,8 @@ fun isPlcType BoolT = true
       if isPlcType hd then isPlcType (ListT tl) else false
   | isPlcType _ = false;
 
-fun isTypeSq (SeqT t:plcType) = true
-  | isTypeSq _ = false;
+fun isPlcSeq (SeqT t:plcType) = true
+  | isPlcSeq _ = false;
 
 fun isFunc (FunT (s,t)) = t
   | isFunc _ raise NotFunc;
@@ -77,8 +77,14 @@ fun teval (e:expr) (p:plcType env) : plcType =
         in
           teval e2 ( (x,t) :: p)
         end
-    | (* 9 : ... dunno ... *)
-      Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
+    | Letrec() => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
+            se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2*)
+        let
+            (?)
+        in
+            (?)
+        end
+    | Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
         let
           val t = teval e ( (x,s) :: p )
         in
@@ -118,18 +124,24 @@ fun teval (e:expr) (p:plcType env) : plcType =
     | Prim1("-", e) => (*15: type(-e, ρ) = Int se type(e, ρ) = Int*)
         if teval e p = IntT then IntT else raise UnknownType
     | Prim1("hd", e) => (*16: type(hd(e), ρ) = t se type(e, ρ) = [t]*)
-        (*Dunno Aux?*)
+        let
+            fun seqChecker(SeqT s) = s
+                | seqChecker _ = raise UnknownType
+            val t = teval e p
+        in
+            if isPlcSeq t then seqChecker t else raise UnknownType
+        end
     | Prim1("tl", e) => (*17: type(tl(e), ρ) = [t] se type(e, ρ) = [t]*)
         let
             val t= teval e p
         in
-            if isTypeSq t then t else raise UnknownType
+            if isPlcSeq t then t else raise UnknownType
         end
     | Prim1("ise", e) => (*18: type(ise(e), ρ) = Bool se type(e, ρ) = [t] para algum tipo t*)
         let
             val t= teval e p
         in
-            if isTypeSq t then BoolT else raise UnknownType
+            if isPlcSeq t then BoolT else raise UnknownType
         end
     | Prim1("print", e) => (*19: type(print(e), ρ) = Nil se type(e, ρ) = t para algum tipo t*)
         let
@@ -145,12 +157,13 @@ fun teval (e:expr) (p:plcType env) : plcType =
             if t0 = BoolT andalso t1 = BoolT then BoolT else raise UnknownType
         end
     | Prim2("::", e0, e1) => (*21: type(e1, ρ) = t e type(e2, ρ) = [t]*)
-    (*Aux again?*)
         let
+            fun seqChecker(SeqT s) = s
+                | seqChecker _ = raise UnknownType
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            (?)
+            if isPlcSeq t1 andalso t2 = (seqChecker t1) then seqChecker t2 else raise UnknownType
         end
     | Prim2("+", e0, e1) => (*22a: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
         let
