@@ -77,12 +77,10 @@ fun teval (e:expr) (p:plcType env) : plcType =
         in
           teval e2 ( (x,t) :: p)
         end
-    | Letrec() => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
+    | Letrec(f, t, x, t1, e1, e2) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
             se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2*)
         let
-            (?)
         in
-            (?)
         end
     | Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
         let
