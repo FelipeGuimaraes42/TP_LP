@@ -59,9 +59,9 @@ fun teval (e:expr) (p:plcType env) : plcType =
     *)
       (Var x) => lookup p x  (* 1 : type(x, ρ) = ρ(x) *)
     | (ConI  _ ) => IntT     (* 2 : type(n, ρ) = Int   *)
-    | (ConB _ ) => BoolT    (* 3 and 4 : type(true|false, p) = Bool *)
+    | (ConB _ ) => BoolT     (* 3 and 4 : type(true|false, p) = Bool *)
     | (List [])  => ListT [] (* 5 : type( () , p ) = Nil *)
-    | (List l)   =>          (* 6 : type((e1, ..., en), ρ) = (t1, ..., tn) se n > 1 e type(ei, ρ) = ti para todo i = 1, . . . , n*)
+    | (List l)   => (* 6 : type((e1, ..., en), ρ) = (t1, ..., tn) se n > 1 e type(ei, ρ) = ti para todo i = 1, ..., n*)
         let
           val list = map (fn t => teval t p) l 
         in
@@ -71,14 +71,15 @@ fun teval (e:expr) (p:plcType env) : plcType =
     | (ESeq _) => raise EmptySeq
     | (Let ( (x:string) , (e1:expr), (e2:expr) )) => (* 8 : type(var x = e1 ; e2, ρ) = t2 se 
                                                             type(e1, ρ) = t1 e type(e2, ρ[x 7→ t1]) = t2 
-                                                            para algum tipo t1                            *)
+                                                            para algum tipo t1*)
         let
           val t = teval e1 p
         in
           teval e2 ( (x,t) :: p)
         end
     | Letrec(f, t0, x, t1, e0, e1) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
-            se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2*)
+                                             se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2,
+                                             ρ[f 7→ t -> t1]) = t2*)
         let
             val recP = (f, FunT(t0, t1))
             val argP = (x, t0)
