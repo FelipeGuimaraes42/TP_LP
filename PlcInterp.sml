@@ -28,8 +28,13 @@
   type(e,p) = t (the type of expression e in enviroment p is t)
   according to the rules defined in the documentation
 *)
+exception Impossible
+exception HDEmptySeq
+exception TLEmptySeq
+exception ValueNotFoundInMatch
+exception NotAFunc
 
-fun test (e:expr) (p:plcVal env) : plcVal =
+fun eval (e:expr) (p:plcVal env) : plcVal =
   case e of
       (Var x) => lookup p x
     | (ConI i) => IntV i
