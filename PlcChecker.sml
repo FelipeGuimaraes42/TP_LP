@@ -77,12 +77,27 @@ fun teval (e:expr) (p:plcType env) : plcType =
         in
           teval e2 ( (x,t) :: p)
         end
-    (*| Letrec(f, t, x, t1, e1, e2) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
+    (*teval (Letrec(fName, argTyp, arg, funTyp, exp1, exp2)) (env:plcType env) =
+    let
+      val recEnv = (fName, FunT (argTyp, funTyp))
+      val argEnv = (arg, argTyp)
+      val exp1Type = teval exp1 (recEnv :: argEnv :: env)
+      val exp2Type = teval exp2 (recEnv :: env)
+    in
+      if exp1Type = funTyp then exp2Type else raise WrongRetType
+    end
+    *)
+    | Letrec(f, t0, x, t1, e0, e1) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
             se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2*)
         let
+            val recP = (f, FunT(t0, t1))
+            val argP = (x, t0)
+            val e0Type = teval e0 (recP :: argP :: p)
+            val e1Type = teval e1 (recP :: p)
         in
+            if e0Type = t1 then e1Type else raise WrongRetType
         end
-    *)| Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
+    | Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
         let
           val t = teval e ( (x,s) :: p )
         in
