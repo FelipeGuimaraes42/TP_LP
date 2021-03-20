@@ -15,18 +15,6 @@
     //   devem fazer com que eval "se perca", nunca produzindo um valor de retorno.
 *)
 
-exception Impossible
-exception HDEmptySeq
-exception TLEmptySeq
-exception ValueNotFoundInMatch
-exception NotAFunc
-
-exception Impossible
-exception HDEmptySeq
-exception TLEmptySeq
-exception ValueNotFoundInMatch
-exception NotAFunc
-
 (*
   x := function or variable name
   n := numerals
@@ -41,107 +29,96 @@ exception NotAFunc
   according to the rules defined in the documentation
 *)
 
-fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
-      let in 
-        lookup p x
-        handle SymbolNotFound => raise SymbolNotFound 
+fun test (e:expr) (p:plcVal env) : plcVal =
+  case e of
+      (Var x) => lookup p x
+    | (ConI i) => IntV i
+    | (ConB b) => BoolV b
+    | (List []) => ListV []
+    | (List l) =>
+      let
+        fun aux (x::[]) = eval x p :: []
+          | aux (x::y) = eval x p :: aux y
+          | aux _ = raise Impossible;
+      in
+        ListV (aux l)
       end
-  | eval (ConI i) _ = IntV i                  (* 2 : type(n, ρ) = Int   *)
-  | eval (ConB b) _ = BoolV b                 (* 3 and 4 : type(true|false, p) = Bool *)
-  | eval (List []) (p:plcVal env) = ListV []  (* 5 : type( () , p ) = Nil *)
-  | eval (List l ) (p:plcVal env) =           (* 6 : type((e1, ..., en), ρ) = (t1, ..., tn) se n > 1 e type(ei, ρ) = ti para todo i = 1, . . . , n*)
-    let
-      fun aux (x::[]) = eval x p :: []
-        | aux (x::y) = eval x p :: aux y
-        | aux _ = raise Impossible;
-    in
-      ListV (aux l)
-    end
-  | eval (ESeq e) _ = SeqV []                 (* 7 : type((t []), ρ) = t se t é um tipo sequência *)
-  | eval (Let (f, e1, e2)) (p:plcVal env) =
-    (*
-      8 : type(var x = e1 ; e2, ρ) = t2 se 
-      type(e1, ρ) = t1 e type(e2, ρ[x 7→ t1]) = t2 
-      para algum tipo t1
-    *)
-    let
-      val p' = (f, eval e1 p) :: p
-    in
-      eval e2 p'
-    end
-  | eval (Letrec (f, argTyp, arg, funTyp, e1, e2)) (p:plcVal env) = 
-    (* 
-      9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
-      se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2
-    *)
-    let
-      val p' = (f, Clos(f, arg, e1, p)) :: p
-    in
-      eval e2 p'
-    end
-  | eval (Anon (typ, arg, exp)) (p:plcVal env) = Clos ("", arg, exp, p) (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
-  | eval (Call (e1, e2)) (p:plcVal env) =                             (* 11 : type(e2(e1), ρ) = t2 se type(e2, ρ) = t1 -> t2 e type(e1, ρ) = t1 para algum tipo t1 *)
-    let
-      fun mountArguments (List (x::[])) = [eval x p]
-        | mountArguments (List (x::xs)) = [eval x p] @ mountArguments (List xs)
-        | mountArguments (exp) = [eval exp p]
-      val p' = [("$list", ListV (mountArguments e2))] @ p
-      val f = eval e1 p
-    in
-      case f of
-          Clos(name, var, exp, cEnv) =>
+    | (ESeq e) => SeqV []
+    | (Let (f,e1,e2)) =>
+      let
+        val p' = (f, eval e1 p) :: p
+      in
+        eval e2 p'
+      end
+    | (Letrec (f, argT, arg, fT, e1, e2)) =>
+      let
+        val p' = (f, Clos(f, arg, e1, p)) :: p
+      in
+        eval e2 p'
+      end
+    | (Anon (tipo, arg, e)) => Clos ("", arg, e, p)
+    | (Call (e1,e2)) =>
+      let
+        fun aux (List (x::[])) = [eval x p]
+          | aux (List (x::y )) = [eval x p] @ aux (List y)
+          | aux (e) = [eval e p]
+        val p' = [("$list", ListV (aux e2))] @ p
+        val f = eval e1 p
+      in
+        case f of
+          Clos(nome, var, e, cp) =>
             let
-              val ev = eval e2 p'
-              val fEnv = (var, ev)::(name, f)::cEnv
+              val x = eval e2 p'
+              val y = (var, x) :: (nome, f) :: cp
             in
-              eval exp fEnv
+              eval e y
             end
-        | _ => raise NotAFunc
-    end
-  | eval (If (e1, e2, e3)) (p:plcVal env) = (* 12 : type(if e then e1 else e2, ρ) = t se type(e, ρ) = Bool e type(e1, ρ) = type(e2, ρ) = t *)
-    let in
-      case eval e1 p of 
-          BoolV true => eval e2 p
-        | BoolV false => eval e3 p
-        | _ => raise Impossible
-    end
-  | eval (Match (e1, matchList)) (p:plcVal env) =
-    (*
-      13: type(match e with | e1 -> r1 | ...| en -> rn, ρ) = t se
-      (a) type(e, ρ) = type(ei , ρ), para cada ei diferente de `__', e
-      (b) type(r1, ρ) = . . . = type(rn, ρ) = t
-    *)
-    let
-      val evalMatchVar = eval e1 p 
-      (* Try matches will return the "cond -> expr" for which cond matches e1 *)
-      fun tryMatches (matchVar, x::[]) p =
-          let in
-            case x of
-                (SOME e2, e3) => if matchVar = eval e2 p then e3 else raise ValueNotFoundInMatch
-              | (NONE, e3) => e3
-          end
-        | tryMatches (matchVar, x::xs) p =  let in
-            case x of
-                (SOME e2, e3) => if matchVar = eval e2 p then e3 else tryMatches (matchVar, xs) p
-              | (NONE, e3) => raise Impossible
-          end
-        | tryMatches (matchVar, _ ) p = raise Impossible
-    in
-      eval (tryMatches (evalMatchVar, matchList) p) p
-    end
-  | eval (Prim1 (oper, exp)) (p:plcVal env) = (* 14 ao 19 *)
-    let
-      val v = eval exp p
-    in
+          | _ => raise NotAFunc
+      end
+    | (If (e,thenB,elseB)) =>
+      let
+        val whichB = eval e p
+      in
+        case whichB of
+            BoolV true => eval thenB p
+          | BoolV false => eval elseB p
+          | _ => raise Impossible
+      end
+    | (Match (e1,mList)) =>
+      let
+        val evaluation = eval e1 p
+        fun aux (var, x::[]) p =
+            let
+            in
+              case x of
+                (SOME e2,e3) => if var = eval e2 p then e3 else raise ValueNotFoundInMatch
+                | (NONE, e3) => e3
+            end
+          | aux (var, x::y) p =
+            let
+            in
+              case x of
+                (SOME e2,e3) => if var = eval e2 p then e3 else aux (var,y) p
+                | (None, e3) => raise Impossible
+            end
+          | aux (var, _) p = raise Impossible
+      in
+        eval (aux (evaluation, mList) p) p
+      end
+    | (Prim1 (opp, e)) =>
+      let
+        val v = eval e p
+      in
       case v of
           BoolV b =>
-          let in
-            case oper of
-                "!" => BoolV (not b) (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
+          let
+          in
+            case opp of
+                "!" => BoolV (not b)
               | "print" => 
                 let 
-                  val v = BoolV b
-                  val ignore = print(val2string(v) ^ "\n")
+                  val bool = BoolV b
+                  val prin = print(val2string(bool)^"\n")
                 in
                   ListV []
                 end
@@ -149,12 +126,12 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
           end
         | IntV i => 
           let in
-            case oper of
-                "-" => IntV (~ i) (*15: type(-e, ρ) = Int se type(e, ρ) = Int*)
+            case opp of
+                "-" => IntV (~ i)
               | "print" => 
                 let 
-                  val v = IntV i
-                  val ignore = print(val2string(v) ^ "\n")
+                  val integer = IntV i
+                  val prin = print(val2string(integer)^"\n")
                 in
                   ListV []
                 end
@@ -162,11 +139,20 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
           end
         | SeqV s =>
           let in
-            case oper of
-                "hd" => let in let in hd s end handle Empty => raise HDEmptySeq end        (*16: type(hd(e), ρ) = t se type(e, ρ) = [t]*)
-              | "tl" => let in let in SeqV (tl s) end handle Empty => raise TLEmptySeq end (*17: type(tl(e), ρ) = [t] se type(e, ρ) = [t]*)
-              | "ise" =>                                                                   (*18: type(ise(e), ρ) = Bool se type(e, ρ) = [t] para algum tipo t*)
-                let in
+            case opp of
+                "hd" => let
+                        in
+                          let in hd s end 
+                          handle Empty => raise HDEmptySeq 
+                        end        
+              | "tl" => let
+                        in 
+                          let in SeqV (tl s) end 
+                          handle Empty => raise TLEmptySeq 
+                        end 
+              | "ise" =>                                                                   
+                let 
+                in
                   case s of
                       [] => BoolV true
                     | _ => BoolV false
@@ -180,9 +166,10 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
               | _ => raise Impossible
           end
         | ListV l =>
-          let in
-            case oper of
-                "print" =>  (*19: type(print(e), ρ) = Nil se type(e, ρ) = t para algum tipo t*)
+          let
+          in
+            case opp of
+                "print" =>
                 let 
                   val ignore = print(list2string(val2string, l) ^ "\n")
                 in
@@ -192,10 +179,10 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
           end
         | _ => raise Impossible
     end
-  | eval (Prim2 (oper, e1, e2)) (p:plcVal env) = (* 20,21,22,23,24,26 *)
-    if oper = ";" then
+  | (Prim2 (opp, e1, e2)) =>
+    if opp = ";" then
       let
-        val ignore = eval e1 p
+        val prin = eval e1 p
       in
         eval e2 p
       end
@@ -207,15 +194,15 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
         case (v1, v2) of
             (BoolV b1, BoolV b2) => 
             let in
-              case oper of
+              case opp of
                   "&&" => BoolV (b1 andalso b2) 
-                | "=" => BoolV (b1 = b2)        
+                | "=" => BoolV  (b1 = b2)        
                 | "!=" => BoolV (b1 <> b2)      
                 | _ => raise Impossible
             end
           | (IntV i1, IntV i2) => 
             let in
-              case oper of
+              case opp of
                   "+" => IntV (i1 + i2)   
                 | "-" => IntV (i1 - i2)
                 | "*" => IntV (i1 * i2)
@@ -228,38 +215,34 @@ fun eval (Var x) (p:plcVal env) =             (* 1 : type(x, ρ) = ρ(x) *)
             end
           | (IntV i1, SeqV s2) => 
             let in
-              case oper of
+              case opp of
                   "::" => SeqV (IntV i1 :: s2)
                 | _ => raise Impossible
             end
           | (BoolV b1, SeqV s2) => 
             let in
-              case oper of
+              case opp of
                   "::" => SeqV (BoolV b1 :: s2)
                 | _ => raise Impossible
             end
           | (ListV l1, SeqV s2) => 
             let in
-              case oper of
+              case opp of
                   "::" => SeqV (ListV l1 :: s2)
                 | _ => raise Impossible
             end
           | _ => raise Impossible
       end
-  | eval (Item (index, exp)) (p:plcVal env) =
-    (*
-      25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) 
-      para algum n > 1 e tipos t1, . . . , tn, e i ∈ {1, . . . , n}
-    *)
+  | (Item (idx, e)) =>
     let
-      fun getElementI (index, []) = raise Impossible
-        | getElementI (index, (x::[])) = if index = 1 then x else raise Impossible
-        | getElementI (index, (x::xs)) = if index = 1 then x else getElementI (index - 1, xs)
-      val value = eval exp p
+      fun aux (idx, []) = raise Impossible
+        | aux (idx, (x::[])) = if idx = 1 then x else raise Impossible
+        | aux (idx, (x::y)) = if idx = 1 then x else aux (idx - 1, y)
+      val value = eval e p
     in
       case value of
-          ListV l => getElementI (index, l)
-        | SeqV s => getElementI (index, s)
+          ListV l => aux (idx, l)
+        | SeqV s => aux (idx, s)
         | _ => raise Impossible
     end
   ;
