@@ -41,7 +41,7 @@ fun isPlcSeq (SeqT t:plcType) = true
   | isPlcSeq _ = false;
 
 fun isFunc (FunT (s,t)) = t
-  | isFunc _ raise NotFunc;
+  | isFunc _ = raise NotFunc;
 
 fun teval (e:expr) (p:plcType env) : plcType =
   case e of
@@ -59,7 +59,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
     *)
       (Var x) => lookup p x  (* 1 : type(x, ρ) = ρ(x) *)
     | (ConI  _ ) => IntT     (* 2 : type(n, ρ) = Int   *)
-    | (BoolT _ ) => BoolT    (* 3 and 4 : type(true|false, p) = Bool *)
+    | (ConB _ ) => BoolT    (* 3 and 4 : type(true|false, p) = Bool *)
     | (List [])  => ListT [] (* 5 : type( () , p ) = Nil *)
     | (List l)   =>          (* 6 : type((e1, ..., en), ρ) = (t1, ..., tn) se n > 1 e type(ei, ρ) = ti para todo i = 1, . . . , n*)
         let
@@ -68,7 +68,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
           ListT list
         end
     | (ESeq (SeqT t)) => SeqT t (* 7 : type((t []), ρ) = t se t é um tipo sequência *)
-    | (Eseq _) => raise EmptySeq
+    | (ESeq _) => raise EmptySeq
     | (Let ( (x:string) , (e1:expr), (e2:expr) )) => (* 8 : type(var x = e1 ; e2, ρ) = t2 se 
                                                             type(e1, ρ) = t1 e type(e2, ρ[x 7→ t1]) = t2 
                                                             para algum tipo t1                            *)
@@ -77,12 +77,12 @@ fun teval (e:expr) (p:plcType env) : plcType =
         in
           teval e2 ( (x,t) :: p)
         end
-    | Letrec(f, t, x, t1, e1, e2) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
+    (*| Letrec(f, t, x, t1, e1, e2) => (* 9 : type(fun rec f (t x) : t1 = e1 ; e2, ρ) = t2
             se type(e1, ρ[f 7→ t -> t1][x 7→ t]) = t1 e type(e2, ρ[f 7→ t -> t1]) = t2*)
         let
         in
         end
-    | Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
+    *)| Anon (s:plcType, x:string , e:expr) => (* 10 : type(fn (s x) => e end, ρ) = s -> t se type(e, ρ[x 7→ s]) = t *)
         let
           val t = teval e ( (x,s) :: p )
         in
@@ -101,21 +101,25 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t1 = teval e1 p
             val t2 = teval e2 p
         in
-            if t0 != BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
+            if t0 <> BoolT then raise IfCondNotBool else if t1 = t2 then t1 else raise DiffBrTypes
         end
     | Match(e, l) => (*13: type(match e with | e1 -> r1 | ...| en -> rn, ρ) = t se
                           (a) type(e, ρ) = type(ei , ρ), para cada ei diferente de `__', e
                           (b) type(r1, ρ) = . . . = type(rn, ρ) = t*)
         let
-            val options = map(fn(x, y) => ((teval (getOptions(x, (List[]))) p), (teval y p))) l
             fun verifyOptions [] p = raise NoMatchResults
-                | verifyOptions((ex, r)::[]) p = 
-                    if ex = (List []) then r else if ex = teval e p then r else raise MatchCondTypesDiff
-                | verifyOptions((ex, r)::(exi, ri)::tl) p =
-                    if ex != teval e p then raise MatchCondTypesDiff
-                    else ex r = ri then verifyOptions((exi, ri)::t) p else raise MatchResTypeDiff
+                | verifyOptions((NONE, r)::[]) p =
+                    teval r p
+                | verifyOptions((SOME ex, r)::[]) p = 
+                    if teval ex p = teval e p then teval r p else raise MatchCondTypesDiff
+                | verifyOptions((NONE, r)::(exi, ri)::tl) p = 
+                    if teval r p = teval ri p then verifyOptions((exi, ri)::tl) p else raise MatchResTypeDiff
+                | verifyOptions((SOME ex, r)::(exi, ri)::tl) p =
+                    if teval ex p <> teval e p then raise MatchCondTypesDiff
+                    else if teval r p = teval ri p then verifyOptions((exi, ri)::tl) p
+                    else raise MatchResTypeDiff
         in
-            verifyOptions options p
+            verifyOptions l p
         end
     | Prim1("!", e) => (*14: type(!e, ρ) = Bool se type(e, ρ) = Bool*)
         if teval e p = BoolT then BoolT else raise UnknownType
@@ -161,7 +165,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            if t0 = (seqChecker t1) then t2 else raise NotEqTypes
+            if t0 = (seqChecker t1) then t1 else raise NotEqTypes
         end
     | Prim2("+", e0, e1) => (*22a: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
         let
@@ -211,7 +215,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t1 = teval e1 p
         in
             if t0 = t1 then BoolT
-            else if t0 != t1 then raise NotEqTypes
+            else if t0 <> t1 then raise NotEqTypes
             else raise UnknownType
         end
     | Prim2("!=", e0, e1) => (*24b: op ∈ {=, !=} e type(e1, ρ) = type(e2, ρ) = t para algum tipo de igualdade t*)
@@ -219,7 +223,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            if t0 != t1 then BoolT
+            if t0 <> t1 then BoolT
             else if t0 = t1 then raise NotEqTypes
             else raise UnknownType
         end
@@ -227,7 +231,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
           tn, e i ∈ {1, . . . , n}*)
     | Item(i, List[]) => raise ListOutOfRange
     | Item(0, List(hd::tl)) => teval hd p
-    | Item(i, List(hd::tl)) => teval (i-1, (List tl)) p
+    | Item(i, List(hd::tl)) => teval (Item(i-1, (List tl))) p
     | Item(_, _) => raise OpNonList
     | Prim2(";", e0, e1) => (*26: type(e1, ρ) = t1 para algum tipo t e type(e2, ρ) = t2*)
         let
