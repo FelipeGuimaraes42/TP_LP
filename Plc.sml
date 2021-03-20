@@ -41,7 +41,8 @@ Control.Print.stringDepth := 1000;
 
 open PlcFrontEnd;
 
-fun runTeval (e:expr) = teval e []
+fun runTeval (e:expr) = teval e [];
+(*
   handle 
   (* Exceções de teval (tipagem incorreta) *)
     EmptySeq => "A sequência de entrada não contém nenhum elemento"
@@ -57,20 +58,26 @@ fun runTeval (e:expr) = teval e []
   | NotFunc => "Você está tentando chamar algo que não é uma função"
   | ListOutOfRange => "Tentativa de acessar um elemento fora dos limites da lista"
   | OpNonList => "Tentativa de acessar um elemento em uma expressão que não é uma lista"
+  ;
+*)
 
-fun runEval (e:expr) = eval e []
+fun runEval (e:expr) = eval e [];
+(*
   handle
   (* Exceções de eval (erros de interpretação) *)
-    Impossible => " Problem Descrition ... "
+    SymbolNotFound => " Didnt find it baby "
+  | Impossible => " Problem Descrition ... "
   | HDEmptySeq => " Problem Descrition ... "
   | TLEmptySeq => " Problem Descrition ... "
   | ValueNotFoundInMatch => " Problem Descrition ... "
   | NotAFunc => " Problem Descrition ..."
+  ;
+*)
 
 fun run (e:expr) =
     let
       val tipo = type2string(runTeval e)
       val valor = val2string(runEval  e)
     in
-      val2string(type) ^ " : " ^ type2string(value)
+      valor ^ " : " ^ tipo
     end;
