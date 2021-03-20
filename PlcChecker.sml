@@ -163,7 +163,7 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            if isPlcSeq t1 andalso t2 = (seqChecker t1) then seqChecker t2 else raise UnknownType
+            if t0 = (seqChecker t1) then t2 else raise NotEqTypes
         end
     | Prim2("+", e0, e1) => (*22a: op ∈ {+, -, *, /} e type(e1, ρ) = type(e2, ρ) = Int*)
         let

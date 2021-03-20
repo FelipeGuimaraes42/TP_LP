@@ -15,9 +15,15 @@
 
 fun run (e:expr) =
     let
-        val tipo = teval e
-        val valor = eval e
+        val type = type2String(teval e [])
+        val val = val2String(eval e [])
     in
+        (* 
+            Receber o valor fornecido por 'eval e' e o tipo fornecido por 'teval e'
+            Transformá-los numa string, juntar ambos noutra string e ser feliz =)
+        *)
+        val ^" : "^type
+    end
         handle 
             (* Exceções de teval (tipagem incorreta) *)
               EmptySeq => "A sequência de entrada não contém nenhum elemento"
@@ -39,10 +45,5 @@ fun run (e:expr) =
             | TLEmptySeq => " Problem Descrition ... "
             | ValueNotFoundInMatch => " Problem Descrition ... "
             | NotAFunc => " Problem Descrition ..."
-
-        (* 
-            Receber o valor fornecido por 'eval e' e o tipo fornecido por 'teval e'
-            Transformá-los numa string, juntar ambos noutra string e ser feliz =)
-        *)
-
-    end;
+            (*Exceções de env (erros de ambiente)*)
+            | SymbolNotFound => " Problem Description ... "
