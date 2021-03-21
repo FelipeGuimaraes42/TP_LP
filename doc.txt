@@ -1,0 +1,16 @@
+Caso queira rodar todos os testes relevantes à segunda parte do trabalho
+basta executar os arquivos lex e yacc e, em seguida o arquivo RunAllTests.sml.
+
+Foram criados 4 arquivos de teste, todos com nome descritivos de seu conteúdo :
+
+testPlcCases.sml -> Executa 26 testes, um para cada regra de tipagem definida
+                    na especificação do trabalho.
+
+testPlcCheckerExceptions.sml -> Executa 13 testes, um para cada exceção definida.
+
+testPlcInterpExceptions.sml -> Executa 6 testes, um para cada exceção definida.
+
+RunAllTests.sml -> Roda todos os testes de uma vez só, inclusive o que checa a
+                   execução de um loop infinito, o qual é executado ao final do
+                   arquivo. Lembre-se de interromper a execução desse etapa
+                   (ctrl c).
