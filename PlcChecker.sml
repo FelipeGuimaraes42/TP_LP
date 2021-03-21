@@ -220,18 +220,18 @@ fun teval (e:expr) (p:plcType env) : plcType =
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            if t0 = t1 then BoolT
-            else if t0 <> t1 then raise NotEqTypes
-            else raise UnknownType
+            if not ((isPlcType t0) andalso (isPlcType t1)) then raise UnknownType
+            else if t0 = t1 then BoolT
+            else raise NotEqTypes
         end
     | Prim2("!=", e0, e1) => (*24b: op ∈ {=, !=} e type(e1, ρ) = type(e2, ρ) = t para algum tipo de igualdade t*)
         let 
             val t0 = teval e0 p
             val t1 = teval e1 p
         in
-            if t0 <> t1 then BoolT
-            else if t0 = t1 then raise NotEqTypes
-            else raise UnknownType
+            if not (isPlcType t0 andalso isPlcType t1) then raise UnknownType
+            else if t0 = t1 then BoolT
+            else raise NotEqTypes
         end
     (*25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) para algum n > 1 e tipos t1, . . . ,
           tn, e i ∈ {1, . . . , n}*)
