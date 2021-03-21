@@ -51,8 +51,8 @@ fun run (e:expr) =
     handle
       (* Exceções de teval (tipagem incorreta) *)
         EmptySeq => " EmptySeq : A sequencia de entrada nao contem nenhum elemento"
-      | UnknownType => " UnknownTyp: E usada nas situacoes onde nenhuma das específicas se encaixa"
-      | NotEqTypes => " NotEqTypes : Se os tipos usados numa comparacao sao diferentes"
+      | UnknownType => " UnknownTyp: Tipo desconhecido"
+      | NotEqTypes => " NotEqTypes : Os tipos da comparacao nao sao iguais"
       | WrongRetType => " WrongRetType : O tipo de retorno da funcao nao condiz com o corpo da mesma"
       | DiffBrTypes => " DiffBrTypes : Os tipos da expressoes dos possíveis caminhos de um If divergem"
       | IfCondNotBool => " IfCondNotBool : A condicao do if nao e booleana"
@@ -68,6 +68,6 @@ fun run (e:expr) =
       (* Exceções de eval (erros de interpretação) *)
       | Impossible => " Impossible : Este erro nao deveria acontecer "
       | HDEmptySeq => " HDEmptySeq : Nao e possivel acessar o header de uma sequencia vazia "
-      | TLEmptySeq => " TLEmptySeq : Nao e possivel acessar a calda de uma sequencia vazia "
+      | TLEmptySeq => " TLEmptySeq : Nao e possivel acessar a cauda de uma sequencia vazia "
       | ValueNotFoundInMatch => " ValueNotFoundInMatch : A operacao de match foi incapaz de combinar com o padrao passado "
       | NotAFunc => " NotAFunc : Nao e permitido tratar tipos nao funcionais como funcoes "

@@ -1,3 +1,4 @@
 PlcParser.yacc.sig
 PlcParser.yacc.sml
 PlcLexer.lex.sml
+PlcCheckerTests.sml
