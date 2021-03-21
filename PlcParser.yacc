@@ -72,7 +72,7 @@ Expr : AtomExpr (AtomExpr)
     | Expr BLE Expr (Prim2("<=", Expr1, Expr2))
     | Expr DBCOL Expr (Prim2("::", Expr1, Expr2))
     | Expr SEMIC Expr (Prim2(";", Expr1, Expr2))
-    | Expr LBKT INTEGER RBKT (ConI(INTEGER))
+    | Expr LBKT INTEGER RBKT (Item(INTEGER, Expr))
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
