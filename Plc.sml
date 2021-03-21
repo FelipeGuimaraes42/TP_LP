@@ -41,43 +41,33 @@ Control.Print.stringDepth := 1000;
 
 open PlcFrontEnd;
 
-fun runTeval (e:expr) = teval e [];
-(*
-  handle 
-  (* Exceções de teval (tipagem incorreta) *)
-    EmptySeq => "A sequência de entrada não contém nenhum elemento"
-  | UnknownType => "É usada nas situações onde nenhuma das específicas se encaixa"
-  | NotEqTypes => "Se os tipos usados numa comparação são diferentes"
-  | WrongRetType => "O tipo de retorno da função não condiz com o corpo da mesma"
-  | DiffBrTypes => "Os tipos da expressões dos possíveis caminhos de um If divergem"
-  | IfCondNotBool => "A condição do if não é booleana"
-  | NoMatchResults => "Não há resultados para a expressão match"
-  | MatchResTypeDiff => "O tipo de algum dos casos em match difere dos demais"
-  | MatchCondTypesDiff => "O tipo das opções de match difere do tipo da expressão passada para Match"
-  | CallTypeMisM => "Você está passando pra uma chamada de função um tipo diferente do qual ela suporta"
-  | NotFunc => "Você está tentando chamar algo que não é uma função"
-  | ListOutOfRange => "Tentativa de acessar um elemento fora dos limites da lista"
-  | OpNonList => "Tentativa de acessar um elemento em uma expressão que não é uma lista"
-  ;
-*)
-
-fun runEval (e:expr) = eval e [];
-(*
-  handle
-  (* Exceções de eval (erros de interpretação) *)
-    SymbolNotFound => " Didnt find it baby "
-  | Impossible => " Problem Descrition ... "
-  | HDEmptySeq => " Problem Descrition ... "
-  | TLEmptySeq => " Problem Descrition ... "
-  | ValueNotFoundInMatch => " Problem Descrition ... "
-  | NotAFunc => " Problem Descrition ..."
-  ;
-*)
-
 fun run (e:expr) =
     let
-      val tipo = type2string(runTeval e)
-      val valor = val2string(runEval  e)
+      val tipo = type2string(teval e [])
+      val valor = val2string(eval e [])
     in
       valor ^ " : " ^ tipo
-    end;
+    end
+    handle
+      (* Exceções de teval (tipagem incorreta) *)
+        EmptySeq => " EmptySeq : A sequência de entrada não contém nenhum elemento"
+      | UnknownType => " UnknownTyp: É usada nas situações onde nenhuma das específicas se encaixa"
+      | NotEqTypes => " NotEqTypes : Se os tipos usados numa comparação são diferentes"
+      | WrongRetType => " WrongRetType : O tipo de retorno da função não condiz com o corpo da mesma"
+      | DiffBrTypes => " DiffBrTypes : Os tipos da expressões dos possíveis caminhos de um If divergem"
+      | IfCondNotBool => " IfCondNotBool : A condição do if não é booleana"
+      | NoMatchResults => " NoMatchResults : Não há resultados para a expressão match"
+      | MatchResTypeDiff => " MatchResTypeDiff : O tipo de algum dos casos em match difere dos demais"
+      | MatchCondTypesDiff => " MatchCondTypesDiff : O tipo das opções de match difere do tipo da expressão passada para Match"
+      | CallTypeMisM => " CallTypeMisM : Você está passando pra uma chamada de função um tipo diferente do qual ela suporta"
+      | NotFunc => " NotFunc: Você está tentando chamar algo que não é uma função"
+      | ListOutOfRange => " ListOutOfRange : Tentativa de acessar um elemento fora dos limites da lista"
+      | OpNonList => " OpNonList : Tentativa de acessar um elemento em uma expressão que não é uma lista"
+      (* Exceções de environ *)
+      | SymbolNotFound => " SymbolNotFound : Um simbolo nao foi definido ou nao pode ser encontrado "
+      (* Exceções de eval (erros de interpretação) *)
+      | Impossible => " Impossible : Este erro nao deveria acontecer "
+      | HDEmptySeq => " HDEmptySeq : Nao e possivel acessar o header de uma sequencia vazia "
+      | TLEmptySeq => " TLEmptySeq : Não e possivel acessar a calda de uma sequencia vazia "
+      | ValueNotFoundInMatch => " ValueNotFoundInMatch : A operaçao de match foi incapaz de combinar com o padrao passado "
+      | NotAFunc => " NotAFunc : Nao e permitido tratar tipos nao funcionais como funçoes "
