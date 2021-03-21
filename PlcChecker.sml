@@ -235,10 +235,17 @@ fun teval (e:expr) (p:plcType env) : plcType =
         end
     (*25: type(e [i], ρ) = ti se type(e, ρ) = (t1, ..., tn) para algum n > 1 e tipos t1, . . . ,
           tn, e i ∈ {1, . . . , n}*)
-    | Item(i, List[]) => raise ListOutOfRange
-    | Item(0, List(hd::tl)) => teval hd p
-    | Item(i, List(hd::tl)) => teval (Item(i-1, (List tl))) p
-    | Item(_, _) => raise OpNonList
+    | Item(i, e) => 
+        let 
+            fun getPos(i, []) = raise ListOutOfRange
+                | getPos(i, (hd::[])) = if i = 1 then hd else raise ListOutOfRange
+                | getPos(i, (hd::tl)) = if i = 1 then hd else getPos(i-1, tl)
+            val t0 = teval e p
+        in
+            case t0 of
+                ListT list => getPos(i, list)
+                | _ => raise OpNonList
+        end
     | Prim2(";", e0, e1) => (*26: type(e1, ρ) = t1 para algum tipo t e type(e2, ρ) = t2*)
         let
             val t0 = teval e0 p
@@ -247,3 +254,4 @@ fun teval (e:expr) (p:plcType env) : plcType =
             t1
         end
     | _ => raise UnknownType
+            
